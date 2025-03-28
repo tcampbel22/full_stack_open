@@ -157,6 +157,9 @@ import { useState } from 'react'
 			<div>good {props.good}</div>
 			<div>neutral {props.neutral}</div>
 			<div>bad {props.bad}</div>
+			<div>all {props.total}</div>
+			<div>average {props.ave}</div>
+			<div>positive {props.pos} %</div>
 			</div>
 		)
 	}
@@ -166,18 +169,46 @@ import { useState } from 'react'
 		const [good, setGood] = useState(0);
 		const [neutral, setNeutral] = useState(0);
 		const [bad, setBad] = useState(0);
+		const [ave, setAve] = useState(0);
+		const [pos, setPos] = useState(0);
+		const [total, setTotal] = useState(0);
+
 		
-		const handleGood = () => {setGood(good + 1); console.log("Clicked good", good);}
-		const handleNeutral = () => {setNeutral(neutral + 1); console.log("Clicked neutral", neutral);}
-		const handleBad = () => {setBad(bad + 1); console.log("Clicked bad", bad);}
+		const handleGood = () => {
+			const updatedGood = good + 1;
+			setGood(updatedGood); 
+			const updatedTotal = updatedGood + neutral + bad;
+			setTotal(updatedTotal);
+			setPos((updatedGood / updatedTotal) * 100);
+			setAve((updatedGood + -bad) / updatedTotal);
+			console.log("Clicked good", updatedGood, "total: ", updatedTotal);
+		}
+		const handleNeutral = () => {
+			const updatedNeutral = neutral + 1;
+			setNeutral(updatedNeutral);
+			const updatedTotal = good + updatedNeutral + bad;
+			setTotal(updatedTotal); 
+			setPos((good / updatedTotal) * 100);
+			setAve((good + -bad) / updatedTotal);
+			console.log("Clicked neutral", updatedNeutral);
+		}
+		const handleBad = () => {
+			const updatedBad = bad + 1;
+			setBad(updatedBad); 
+			const updatedTotal = good + neutral + updatedBad;
+			setTotal(updatedTotal);
+			setPos((good / updatedTotal) * 100);
+			setAve((good + -updatedBad) / updatedTotal);
+			console.log("Clicked bad", updatedBad);
+		}
 		return (
 		<div>
 			<RenderHeader text="give feedback"/>
-			<Button onClick={handleGood} text="good" />
+			<Button onClick={handleGood} text="good"/>
 			<Button onClick={handleNeutral}text="neutral"/>
 			<Button onClick={handleBad} text="bad"/>
 			<RenderHeader text="statistics"/>
-			<RenderStats good={good} neutral={neutral} bad={bad}/>
+			<RenderStats good={good} neutral={neutral} bad={bad} total={total} pos={pos} ave={ave}/>
 		</div>
 		)
 	}
