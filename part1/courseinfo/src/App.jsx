@@ -151,7 +151,10 @@ import { useState } from 'react'
 		)
 	}
 
-	const RenderStats = (props) => {
+	const Statistics = (props) => {
+		if (props.good === 0 && props.bad === 0 && props.neutral === 0)
+			return ( <div>No feedback available</div> );
+		else {
 		return (
 			<div>
 			<div>good {props.good}</div>
@@ -161,7 +164,7 @@ import { useState } from 'react'
 			<div>average {props.ave}</div>
 			<div>positive {props.pos} %</div>
 			</div>
-		)
+		)};
 	}
 	
 	const App = () => {
@@ -208,7 +211,7 @@ import { useState } from 'react'
 			<Button onClick={handleNeutral}text="neutral"/>
 			<Button onClick={handleBad} text="bad"/>
 			<RenderHeader text="statistics"/>
-			<RenderStats good={good} neutral={neutral} bad={bad} total={total} pos={pos} ave={ave}/>
+			<Statistics good={good} neutral={neutral} bad={bad} total={total} pos={pos} ave={ave}/>
 		</div>
 		)
 	}
