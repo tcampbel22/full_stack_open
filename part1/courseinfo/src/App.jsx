@@ -153,23 +153,28 @@ import { useState } from 'react'
 
 	const StatisticsLine = (props) => {
 		return (
-			<div>{props.text} {props.stats} {props.percent}</div>
+			<tr>
+				<td>{props.text}</td> 
+				<td>{props.stats}{props.percent}</td>
+			</tr>
 		);
 	}
 
 	const Statistics = (props) => {
 		if (props.good === 0 && props.bad === 0 && props.neutral === 0)
-			return ( <div>No feedback available</div> );
+			return ( <p>No feedback available</p> );
 		else {
 		return (
-			<div>
-			<StatisticsLine text="good" stats={props.good}/>
-			<StatisticsLine text="neutral" stats={props.neutral}/>
-			<StatisticsLine text="bad" stats={props.bad}/>
-			<StatisticsLine text="all" stats={props.total}/>
-			<StatisticsLine text="average" stats={props.ave}/>
-			<StatisticsLine text="positive" stats={props.pos} percent="%"/>
-			</div>
+				<table>
+					<tbody>
+					<StatisticsLine text="good" stats={props.good}/>
+					<StatisticsLine text="neutral" stats={props.neutral}/>
+					<StatisticsLine text="bad" stats={props.bad}/>
+					<StatisticsLine text="all" stats={props.total}/>
+					<StatisticsLine text="average" stats={props.ave}/>
+					<StatisticsLine text="positive" stats={props.pos} percent="%"/>
+					</tbody>
+				</table>
 		)};
 	}
 	
@@ -185,18 +190,18 @@ import { useState } from 'react'
 		const handleStat = (stat, setter, text) => {
 			const updatedStat = stat + 1;
 			setter(updatedStat);
-			const updatedTotal = total + updatedStat;
+			const updatedTotal = total + 1;
 			setTotal(updatedTotal);
 			if (text === "good") {
-				setPos((updatedStat / updatedTotal) * 100);
-				setAve((updatedStat + -bad) / updatedTotal);
+				setPos(((updatedStat / updatedTotal) * 100).toPrecision(2));
+				setAve(((updatedStat - bad) / updatedTotal).toPrecision(2));
 			}
 			else {
-				setPos((good / updatedTotal) * 100);
+				setPos(((good / updatedTotal) * 100).toPrecision(2));
 				if (text === "bad")
-					setAve((good + -updatedStat) / updatedTotal);
+					setAve(((good - updatedStat) / updatedTotal).toPrecision(2));
 				else
-					setAve((good + -bad) / updatedTotal);
+					setAve(((good - bad) / updatedTotal).toPrecision(2));
 			}
 			console.log(`Clicked ${text}`, updatedStat, "total: ", updatedTotal);
 		}
