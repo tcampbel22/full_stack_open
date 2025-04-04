@@ -177,6 +177,10 @@ import { useState } from 'react'
 				</table>
 		)};
 	}
+
+	const RenderInfo = ({info}) => {
+		return ( <div>{info}</div> )
+	}
 	
 	const App = () => {
 		// save clicks of each button to its own state
@@ -186,6 +190,9 @@ import { useState } from 'react'
 		const [ave, setAve] = useState(0);
 		const [pos, setPos] = useState(0);
 		const [total, setTotal] = useState(0);
+		const [selected, setSelected] = useState(0);
+		const [votes, setVotes] = useState(new Array(8).fill(0));
+		const [mostVotes, setMostVotes] = useState(0);
 
 		const handleStat = (stat, setter, text) => {
 			const updatedStat = stat + 1;
@@ -205,6 +212,33 @@ import { useState } from 'react'
 			}
 			console.log(`Clicked ${text}`, updatedStat, "total: ", updatedTotal);
 		}
+		const anecdotes = [
+			'If it hurts, do it more often.',
+    		'Adding manpower to a late software project makes it later!',
+    		'The first 90 percent of the code accounts for the first 90 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.',
+    		'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.',
+    		'Premature optimization is the root of all evil.',
+    		'Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.',
+    		'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
+    		'The only way to go fast, is to go well.'
+		]
+		const randomNum = () => {
+			const updatedSelected = Math.floor(Math.random() * 8)
+			setSelected(updatedSelected);
+			console.log(`Anecdote[${updatedSelected}]`);
+		}
+		const vote = (num) => {
+			const copy = [ ...votes ];
+			copy[num] += 1;
+			setVotes(copy);
+			mostPopular();
+			console.log("Votes:", copy[num], "mostPopular:", mostVotes);
+		}
+		const mostPopular = () => {
+			const copy = mostVotes;
+			copy = Math.max(votes);
+			setMostVotes(copy);
+		}
 		return (
 		<div>
 			<RenderHeader text="give feedback"/>
@@ -213,6 +247,14 @@ import { useState } from 'react'
 			<Button onClick={() => handleStat(bad, setBad, "bad")} text="bad"/>
 			<RenderHeader text="statistics"/>
 			<Statistics good={good} neutral={neutral} bad={bad} total={total} pos={pos} ave={ave}/>
+			<RenderHeader text="Anecdote of the day"/>
+			<RenderInfo info={anecdotes[selected]}/>
+			<RenderInfo info={`has ${votes[selected]} votes`}/>
+			<Button onClick={() => vote(selected)} text="vote"/>
+			<Button onClick={randomNum} text="next anecdote"/>
+			<RenderHeader text="Anecdote with most votes"/>
+			<RenderInfo info={`${anecdotes[mostVotes]}`}/>
+			
 		</div>
 		)
 	}
