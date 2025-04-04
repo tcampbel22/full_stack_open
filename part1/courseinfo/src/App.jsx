@@ -193,6 +193,7 @@ import { useState } from 'react'
 		const [selected, setSelected] = useState(0);
 		const [votes, setVotes] = useState(new Array(8).fill(0));
 		const [mostVotes, setMostVotes] = useState(0);
+		const [highestIndex, setHighestIndex] = useState(0);
 
 		const handleStat = (stat, setter, text) => {
 			const updatedStat = stat + 1;
@@ -222,22 +223,28 @@ import { useState } from 'react'
     		'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
     		'The only way to go fast, is to go well.'
 		]
+		//Genreates random index for anecdote array
 		const randomNum = () => {
-			const updatedSelected = Math.floor(Math.random() * 8)
+			const updatedSelected = Math.floor(Math.random() * anecdotes.length)
 			setSelected(updatedSelected);
 			console.log(`Anecdote[${updatedSelected}]`);
 		}
-		const vote = (num) => {
-			const copy = [ ...votes ];
-			copy[num] += 1;
-			setVotes(copy);
-			mostPopular();
-			console.log("Votes:", copy[num], "mostPopular:", mostVotes);
+		//Updates the most popular anecdote
+		const mostPopular = (updatedVotes) => {
+			if (votes.length === 0)
+				return ;
+			let maxVal = Math.max(...updatedVotes);
+			let index = updatedVotes.indexOf(Math.max(...updatedVotes));
+			setMostVotes(maxVal);
+			setHighestIndex(index);
 		}
-		const mostPopular = () => {
-			const copy = mostVotes;
-			copy = Math.max(votes);
-			setMostVotes(copy);
+		//Assigns votes to each anecdote
+		const vote = (index) => {
+			const copy = [ ...votes ];
+			copy[index] += 1;
+			mostPopular(copy);
+			setVotes(copy);
+			console.log("Votes:", copy[index], "mostPopular:", mostVotes);
 		}
 		return (
 		<div>
@@ -253,7 +260,8 @@ import { useState } from 'react'
 			<Button onClick={() => vote(selected)} text="vote"/>
 			<Button onClick={randomNum} text="next anecdote"/>
 			<RenderHeader text="Anecdote with most votes"/>
-			<RenderInfo info={`${anecdotes[mostVotes]}`}/>
+			<RenderInfo info={`${anecdotes[highestIndex]}`}/>
+			<RenderInfo info={`has ${mostVotes} votes`}/>
 			
 		</div>
 		)
