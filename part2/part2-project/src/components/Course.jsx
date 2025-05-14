@@ -1,7 +1,6 @@
-const Course = ( { note } )=> {
-	return (
-		<li>{ note.content }</li>
-	);
+
+const Course = ({ course }) => {
+	return <li>{course.content}</li>
 }
 
-export default Note
+export default Course
