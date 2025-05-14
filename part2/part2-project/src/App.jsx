@@ -1,55 +1,52 @@
-// import Course from "./components/Course"
-
-
-const Course = ({ course }) => {
-	return (
-	<div>
-		<Header name={course.name}/>
-		<Content parts={course.parts}/>
-	</div>
-	)
-}
-const Header = ({ name }) => <h1>{name}</h1>
-
-const Content = ({ parts }) => (
-  <div>
-    {parts.map(part => 
-		<Part key={part.id} part={part}/>
-	)}
-  </div>
-)
-
-const Part = ({ part }) => (
-  <p>
-    {part.name} {part.exercises}
-  </p>
-)
-
-const Total = ({ total }) => <p>Number of exercises {total}</p>
+import Courses from "./components/Courses"
 
 const App = () => {
-  const course = {
-    name: 'Half Stack application development',
-	parts: [
+	const courses = [
 		{
-		  name: 'Fundamentals of React',
-		  exercises: 10,
-		  id: 1
-		},
+		  name: 'Half Stack application development',
+		  id: 1,
+		  parts: [
+			{
+			  name: 'Fundamentals of React',
+			  exercises: 10,
+			  id: 1
+			},
+			{
+			  name: 'Using props to pass data',
+			  exercises: 7,
+			  id: 2
+			},
+			{
+			  name: 'State of a component',
+			  exercises: 14,
+			  id: 3
+			},
+			{
+			  name: 'Redux',
+			  exercises: 11,
+			  id: 4
+			}
+		  ]
+		}, 
 		{
-		  name: 'Using props to pass data',
-		  exercises: 7,
-		  id: 2
-		},
-		{
-		  name: 'State of a component',
-		  exercises: 14,
-		  id: 3
+		  name: 'Node.js',
+		  id: 2,
+		  parts: [
+			{
+			  name: 'Routing',
+			  exercises: 3,
+			  id: 1
+			},
+			{
+			  name: 'Middlewares',
+			  exercises: 7,
+			  id: 2
+			}
+		  ]
 		}
 	  ]
-  }
 
-  return <Course course={course}/>
+  return <Courses courses={courses}/>
 }
 
 export default App
