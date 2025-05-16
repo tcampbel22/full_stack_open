@@ -1,6 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const Header = ({header}) => { return <h2>{header}</h2> }
+
+//Use effect example
+// 	const hook = () => {
+// 		console.log('effect');
+// 		axios.get('http://localhost:3001/notes').then(response => {
+// 			console.log('promise fufilled');
+// 			setNotes(response.data);	
+// 		})
+// 	}
+// 	useEffect(hook, [])
 
 const Person = ({person}) => { 
 	return (
@@ -66,14 +77,23 @@ const PersonForm = ({addPerson, handleNewNames, handleNewNumbers, newName, newNu
 	)
 }
 
-
 const App = () => {
-  const [persons, setPersons] = useState([]) //Array of people objects 
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [newFilter, setNewFilter] = useState('')
+	const [persons, setPersons] = useState([]) //Array of people objects 
+	const [newName, setNewName] = useState('')
+	const [newNumber, setNewNumber] = useState('')
+	const [newFilter, setNewFilter] = useState('')
 
-  const addPerson = (event) => {
+	const personsHook = () => {
+		axios.get('http://localhost:3001/persons').then(response => {
+			console.log('Promise fufilled', response.data)
+			setPersons(response.data);
+		})
+	}
+
+	useEffect(personsHook, []);
+ 
+
+	const addPerson = (event) => {
 	event.preventDefault();
 	console.log("Clicked add", event.target);
 	if (!newName)
@@ -91,27 +111,27 @@ const App = () => {
 	setPersons(persons.concat(nameObject));
 	setNewName('')
 	setNewNumber('')
- } 
- 
-  const handleNewNames = (event) => {
+	} 
+
+	const handleNewNames = (event) => {
 	event.preventDefault();
 	console.log(event.target.value);
 	setNewName(event.target.value);
-  }
+	}
 
-  const handleNewNumbers = (event) => {
+	const handleNewNumbers = (event) => {
 	event.preventDefault();
 	console.log(event.target.value);
 	setNewNumber(event.target.value);
-  }
+	}
 
-  const handleFilter = (event) => {
+	const handleFilter = (event) => {
 	event.preventDefault();
 	console.log(event.target.value);
 	setNewFilter(event.target.value);
-  }
-  return (
-    <div>
+	}
+	return (
+	<div>
 	<Header header="Phonebook"/>
 	<FilterInput 
 		handleFilter={handleFilter}
@@ -130,8 +150,8 @@ const App = () => {
 		persons={persons}
 		newFilter={newFilter}
 	/>
-    </div>
-  )
-}
+	</div>
+	)
+	}
 
 export default App
