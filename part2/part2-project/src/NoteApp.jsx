@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import noteService from "./services/notes"
 
 
@@ -13,7 +12,7 @@ const Note = ({ note, toggleImportance }) => {
 	)
 }
 
-const App = () => {
+const NoteApp = () => {
 		const [notes, setNotes] = useState([])
 		const [newNote, setNewNote] = useState('')
 		const [showAll, setShowAll] = useState(true);
@@ -78,4 +77,4 @@ const App = () => {
 		  )
 		}
 		
-		export default App
+		export default NoteApp
