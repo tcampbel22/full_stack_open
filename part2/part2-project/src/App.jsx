@@ -3,15 +3,20 @@ import PersonForm  from './components/PersonForm'
 import FilterInput  from './components/Filter'
 import People from './components/People'
 import personService from './services/persons'
+import Footer from './components/Footer'
+import Added from './components/Added'
+import Error from './components/Error'
 
 
 const Header = ({header}) => { return <h2>{header}</h2> }
 
 const App = () => {
 	const [persons, setPersons] = useState([]) //Array of people objects 
-	const [newName, setNewName] = useState('')
-	const [newNumber, setNewNumber] = useState('')
-	const [newFilter, setNewFilter] = useState('')
+	const [newName, setNewName] = useState('');
+	const [newNumber, setNewNumber] = useState('');
+	const [newFilter, setNewFilter] = useState('');
+	const [isAdded, setIsAdded] = useState(null);
+	const [errorMessage, setErrorMessage] = useState(null);
 	
 	useEffect(() => {
 		personService.getPersons().then(returnedPersons => {
@@ -19,7 +24,12 @@ const App = () => {
 				setPersons(returnedPersons);
 			})
 		}, [])
-
+	
+	const toggleAdded = ( msg )=> {
+		setIsAdded(msg);
+		setTimeout(() => { setIsAdded(null) }, 3000);
+	}
+	
 	const addPerson = (event) => {
 		event.preventDefault();
 		if (!newName)
@@ -34,11 +44,12 @@ const App = () => {
 			name: newName,
 			number: newNumber,
 		}
-	personService.createPerson(nameObject).then(returnedPerson => {
-		setPersons(persons.concat(returnedPerson));
-		setNewName('')
-		setNewNumber('')
-		console.log("new name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
+		personService.createPerson(nameObject).then(returnedPerson => {
+			setPersons(persons.concat(returnedPerson));
+			setNewName('')
+			setNewNumber('')
+			console.log("new name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
+			toggleAdded(`Added ${returnedPerson.name}`);
 		})
 		.catch(error => {
 			console.error(`Failed to create ${newName}'s number`, error);
@@ -57,16 +68,17 @@ const App = () => {
 			personService.updateNumber(person.id, numObject)
 			.then(updatedPerson => {
 				setPersons(persons.map(person => person.id !== updatedPerson.id ? person : updatedPerson) );
+				toggleAdded(`Updated ${person.name}`);
 			})
 			.catch(error => {
 				console.error(`Failed to update ${person.name}'s number`, error);
+				setErrorMessage(`Cannot update ${person.name} as they have been deleted or do not exist`)
 			});
 		}
 		else {
 			console.log("Clicked cancel")
 			return;
 		}
-
 	}
 
 	const removePerson = (id) => {
@@ -106,7 +118,9 @@ const App = () => {
 	return (
 	<div>
 		<Header header="Phonebook"/>
-		<FilterInput 
+		<Added msg={isAdded}/>
+		<Error msg={errorMessage}/>
+		<FilterInput
 			handleFilter={handleFilter}
 			newFilter={newFilter}
 		/>
@@ -124,6 +138,7 @@ const App = () => {
 			newFilter={newFilter}
 			removePerson={removePerson}
 		/>
+		<Footer />
 	</div>
 	)
 }

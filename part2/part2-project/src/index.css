@@ -1,4 +1,37 @@
-:root {
+
+h1 {
+	color: green;
+	font-style: italic;
+}
+
+.note {
+	color: grey;
+	padding-top: 3px;
+	font-size: 15px;
+}
+
+.error {
+  color: red;
+  background: lightpink;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.added {
+	color: green;
+	background: lightgreen;
+	font-size: 20px;
+	border-style: solid;
+	border-radius: 5px;
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -65,4 +98,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
