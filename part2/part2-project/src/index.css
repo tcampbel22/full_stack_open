@@ -1,7 +1,33 @@
 
+:root {
+	color-scheme: dark;
+}
+
 h1 {
-	color: green;
-	font-style: italic;
+	color: greenyellow;
+	font-style: bold;
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	text-align: center;
+}
+
+h2 {
+	color: greenyellow;
+	font-style: bold;
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+p {
+	color: yellowgreen;
+}
+
+li {
+	color: greenyellow;
+}
+
+label {
+	padding-right: 10px;
+	font-style: bold;
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .note {

@@ -52,7 +52,10 @@ const App = () => {
 			toggleAdded(`Added ${returnedPerson.name}`);
 		})
 		.catch(error => {
-			console.error(`Failed to create ${newName}'s number`, error);
+			console.error(`Failed to create ${newName}`, error);
+			setErrorMessage(`Failed to create ${newName}`);
+			setTimeout(() => {setErrorMessage(null)}, 2000);
+
 		});
 	}
 
@@ -71,8 +74,13 @@ const App = () => {
 				toggleAdded(`Updated ${person.name}`);
 			})
 			.catch(error => {
-				console.error(`Failed to update ${person.name}'s number`, error);
-				setErrorMessage(`Cannot update ${person.name} as they have been deleted or do not exist`)
+				console.error(`Failed to update ${person.name}'s number. Status: ${error.response.status}`, error);
+				if (error.response.status === 404) {
+					setErrorMessage(`Cannot update ${person.name} as they have been deleted or do not exist`)
+				} else {
+					setErrorMessage(`Cannot update ${person.name}, please try again`)
+				}
+				setTimeout(() => {setErrorMessage(null)}, 2000);
 			});
 		}
 		else {
@@ -95,6 +103,12 @@ const App = () => {
 			})
 		.catch(error => {
 			console.error(`Failed to delete person ${id}`, error);
+			if (error.response.status === 404) {
+				setErrorMessage(`Cannot delete ${person.name} as they have been deleted aready or do not exist`)
+			} else {
+				setErrorMessage(`Cannot delete ${person.name}, please try again`)
+			}
+			setTimeout(() => {setErrorMessage(null)}, 2000);
 		})
 	}
 
