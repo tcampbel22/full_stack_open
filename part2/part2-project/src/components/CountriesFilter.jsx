@@ -1,5 +1,5 @@
 
-const CountriesForm = ({handleCountryFilter, countryFilter}) => {
+const CountriesFilter = ({handleCountryFilter, countryFilter}) => {
 	return (
 		<div>
 			<label htmlFor="name">Country Search:</label>
@@ -13,4 +13,4 @@ const CountriesForm = ({handleCountryFilter, countryFilter}) => {
 	)
 }
 
-export default CountriesForm
+export default CountriesFilter

@@ -12,5 +12,17 @@ const getCountry = country => {
 	return request.then(response => response.data);
 }
 
-export default { getAllCountries, getCountry }
+const getWeather = (capital) => {
+	const key = import.meta.env.VITE_WEATHER_KEY;
+	const request = axios.get(`http://api.weatherapi.com/v1/current.json`, {
+		params: {
+			key: key,
+			q: capital
+		}
+	})
+	return request.then (response => response.data);
+
+}
+
+export default { getAllCountries, getCountry, getWeather }
 

@@ -30,6 +30,11 @@ label {
 	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
+button {
+	margin-bottom: 4px;
+	padding: 1px;
+}
+
 .note {
 	color: grey;
 	padding-top: 3px;
