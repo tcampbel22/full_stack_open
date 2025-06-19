@@ -35,5 +35,31 @@ app.get('/api/persons', (request, response) => {
 	response.json(persons);
 });
 
+app.get('/api/persons/:id', (request, response) => {
+	const id = request.params.id;
+	const person = persons.find(p => p.id === id);
+	if (!person)
+		return response.status(404).end();
+	response.json(person);
+});
+
+app.delete('/api/persons/:id', (request, response) => {
+	const id = request.params.id;
+	const person = persons.find(p => p.id === id);
+	if (!person)
+		return response.status(404).end();
+	persons = persons.filter(p => p.id !== id);
+	response.status(204).json(person);
+});
+
+app.get('/info', (request, response) => {
+	const len = persons.length;
+	const time = new Date();
+	response.send(`
+		<p>Phonebook has info for ${len} people</p>
+		<p>${time}</p>
+		`);
+});
+
 app.listen(3001);
 console.log('Server running on port 3001');
