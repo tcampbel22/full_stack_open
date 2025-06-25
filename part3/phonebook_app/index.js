@@ -50,7 +50,7 @@ app.delete('/api/persons/:id', (request, response) => {
 		return response.status(404).end();
 	persons = persons.filter(p => p.id !== id);
 	response.status(204).json(person);
-});
+})
 
 app.get('/info', (request, response) => {
 	const len = persons.length;
@@ -59,6 +59,26 @@ app.get('/info', (request, response) => {
 		<p>Phonebook has info for ${len} people</p>
 		<p>${time}</p>
 		`);
+});
+
+app.post('/api/persons', (request, response) => {
+	const name = request.body.name;
+	const number = request.body.number;
+	if (!name || !number || !parseInt(number))
+		response.status(400).json({"error": "name or number is invalid"}).end();
+	else if (persons.find(n => n.name === name))
+		response.status(400).json({"error": "name must be unique"}).end();
+	else  {
+		const id = Math.floor(Math.random() * 10000000);
+		// console.log(`name: ${name}\nnumber: ${number}\nid: ${id}`);
+		persons = persons.concat({
+			"id": id,
+			"name": name,
+			"number": number,
+		});
+		response.send(persons);
+		// console.log(persons);
+	}
 });
 
 app.listen(3001);
