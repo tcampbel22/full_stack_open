@@ -25,8 +25,8 @@ let persons =
 	}
 ]
 
-morgan.token('post', function getBody (res) {
-	return JSON.stringify(res.body)
+morgan.token('post', function getBody (req) {
+	return JSON.stringify(req.body)
 })
 
 const app = express();
@@ -77,12 +77,13 @@ app.post('/api/persons', (request, response) => {
 	else  {
 		const id = Math.floor(Math.random() * 10000000);
 		// console.log(`name: ${name}\nnumber: ${number}\nid: ${id}`);
-		persons = persons.concat({
+		const person = {
 			"id": id,
 			"name": name,
 			"number": number,
-		});
-		response.send(persons);
+		}
+		persons = persons.concat(person);
+		response.send(person);
 		// console.log(persons);
 	}
 });
@@ -92,6 +93,7 @@ const unknownEndpoint = (request, response) => {
   }
   
 app.use(unknownEndpoint)
-
-app.listen(3001);
-console.log('Server running on port 3001');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`);
+});
