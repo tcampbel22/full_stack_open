@@ -1,44 +1,89 @@
 
 :root {
 	color-scheme: dark;
+	justify-items: center;
+	justify-content: center;
 }
 
 h1 {
 	color: greenyellow;
 	font-style: bold;
 	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	font-size: xx-large;
 	text-align: center;
+	margin: auto;
+	
 }
 
 h2 {
 	color: greenyellow;
 	font-style: bold;
 	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	justify-items: center;
+	text-align: center;
+	margin-bottom: 20px;
 }
 
 p {
 	color: yellowgreen;
+	justify-items: center;
+	text-align: center;
+	
 }
 
 li {
 	color: greenyellow;
+	justify-items: center;
+	text-align: center;
+	padding-top: 3px;
+	padding-bottom: 3px;
 }
 
-label {
-	padding-right: 10px;
+
+form {
+	margin-bottom: 4px;
+	margin-top: 10px;
+	margin-right: 10px;
 	font-style: bold;
 	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	margin-left: 6px;
+	justify-content: center;
+	justify-items: center;
+	text-align: center;
+	justify-self: center;
+}
+
+input {
+	margin-bottom: 4px;
 }
 
 button {
 	margin-bottom: 4px;
+	margin-top: 4px;
+	margin-left: 6px;
 	padding: 1px;
+	justify-items: center;
+	text-align: center;
 }
 
 .note {
 	color: grey;
 	padding-top: 3px;
 	font-size: 15px;
+	justify-items: center;
+}
+
+.filter {
+	margin-bottom: 4px;
+	margin-top: 10px;
+	margin-right: 10px;
+	font-style: bold;
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	margin-left: 6px;
+	justify-content: center;
+	justify-items: center;
+	text-align: center;
+	justify-self: center;
 }
 
 .error {

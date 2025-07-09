@@ -6,9 +6,8 @@ import personService from './services/persons'
 import Footer from './components/Footer'
 import Added from './components/Added'
 import Error from './components/Error'
-
-
-const Header = ({header}) => { return <h2>{header}</h2> }
+import { Header1, Header2 } from './components/Header'
+ 
 
 const App = () => {
 	const [persons, setPersons] = useState([]) //Array of people objects 
@@ -131,14 +130,14 @@ const App = () => {
 	}
 	return (
 	<div>
-		<Header header="Phonebook"/>
+		<Header1 header="Phonebook"/>
 		<Added msg={isAdded}/>
 		<Error msg={errorMessage}/>
 		<FilterInput
 			handleFilter={handleFilter}
 			newFilter={newFilter}
 		/>
-		<Header header="add a new"/>
+		<Header2 header="Add new contact"/>
 		<PersonForm  
 			addPerson={addPerson}
 			handleNewNames={handleNewNames}
@@ -146,7 +145,7 @@ const App = () => {
 			newName={newName}
 			newNumber={newNumber}
 		/>
-		<Header header="Numbers"/>
+		<Header2 header="Numbers"/>
 		<People 
 			persons={persons}
 			newFilter={newFilter}
