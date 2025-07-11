@@ -1,0 +1,2 @@
+MONGODB_URI=mongodb+srv://tcampbel22:passwordhere@cluster0.gomqvlh.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0
+PORT=3001
