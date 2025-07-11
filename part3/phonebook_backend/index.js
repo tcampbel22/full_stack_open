@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
-const Person = require('./models/person')
+const Person = require('./models/person');
+const person = require('./models/person');
 
 let persons = 
 	[
@@ -36,43 +37,48 @@ app.use(express.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post'));
 app.use(express.static('dist'))
 
-// app.get('/', (request, response) => {
-// 	response.send('<h1>Welcome to the Phonebook</h1>');
-// });
-
 app.get('/api/persons', (request, response) => {
-	// Person.find({}).then(persons => {
-	// 	persons.forEach(person => {
-	// 		console.log(`${person.name} ${person.number}`)
-	// 	})
-
-	response.json(Person);
+	Person.find({}).then(persons => {
+		response.json(persons);
+	});
 });
 
 app.get('/api/persons/:id', (request, response) => {
 	const id = request.params.id;
-	const person = persons.find(p => p.id === id);
-	if (!person)
-		return response.status(404).end();
-	response.json(person);
+	Person.findById(id).then(person => {
+		if (person)
+			response.json(person);
+		else
+			response.status(404).end();
+	})
+	.catch(error => {
+		console.error(error);
+		response.status(400).send({ error: 'malformatted id' }).end();
+	})
 });
 
 app.delete('/api/persons/:id', (request, response) => {
 	const id = request.params.id;
-	const person = persons.find(p => p.id === id);
-	if (!person)
-		return response.status(404).end();
-	persons = persons.filter(p => p.id !== id);
-	response.status(204).json(person);
+	Person.findByIdAndDelete(id).then(person => {
+		if (person)
+			response.json(person);
+		else
+			response.status(404).end();
+	})
+	.catch(error => {
+		console.error(error);
+		response.status(400).send({ error: 'malformatted id' }).end();
+	})
 })
 
 app.get('/info', (request, response) => {
-	const len = persons.length;
-	const time = new Date();
-	response.send(`
-		<p>Phonebook has info for ${len} people</p>
-		<p>${time}</p>
+	Person.countDocuments({}).then(count => {
+		const time = new Date();
+		response.send(`
+			<p>Phonebook has info for ${count} people</p>
+			<p>${time}</p>
 		`);
+	})
 });
 
 app.post('/api/persons', (request, response) => {
@@ -80,19 +86,15 @@ app.post('/api/persons', (request, response) => {
 	const number = request.body.number;
 	if (!name || !number || !parseInt(number))
 		response.status(400).json({"error": "name or number is invalid"}).end();
-	else if (persons.find(n => n.name === name))
-		response.status(400).json({"error": "name must be unique"}).end();
 	else  {
-		const id = Math.floor(Math.random() * 10000000);
 		// console.log(`name: ${name}\nnumber: ${number}\nid: ${id}`);
-		const person = {
-			"id": id,
-			"name": name,
-			"number": number,
-		}
-		persons = persons.concat(person);
-		response.send(person);
-		// console.log(persons);
+		const person = new Person({
+			name: name,
+			number: number,
+		});
+		person.save().then(savedPerson => {
+			response.json(savedPerson);
+		})
 	}
 });
 

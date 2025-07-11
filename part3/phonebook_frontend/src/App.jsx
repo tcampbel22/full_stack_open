@@ -47,7 +47,7 @@ const App = () => {
 			setPersons(persons.concat(returnedPerson));
 			setNewName('')
 			setNewNumber('')
-			console.log("new name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
+			console.log("name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
 			toggleAdded(`Added ${returnedPerson.name}`);
 		})
 		.catch(error => {

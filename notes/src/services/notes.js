@@ -16,4 +16,10 @@ const update = (id, newObject) => {
   return request.then(response => response.data)
 }
 
+app.get('/api/notes', (request, response) => {
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
+})
+
 export default { getAll, create, update }
