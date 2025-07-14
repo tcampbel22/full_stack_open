@@ -1,10 +1,10 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-if (process.argv.length < 2 || process.argv.length > 4) {
-	console.error(`error: expected 3 - 5 args, you gave ${process.argv.length} :(`);
-	process.exit(1);
-}
+// if (process.argv.length < 2 || process.argv.length > 4) {
+// 	console.error(`error: expected 3 - 5 args, you gave ${process.argv.length} :(`);
+// 	process.exit(1);
+// }
 
 const url = process.env.MONGODB_URI
 
@@ -25,22 +25,22 @@ const personSchema = new mongoose.Schema({
 // const Person = mongoose.model('Person', personSchema);
 module.exports = mongoose.model('Person', personSchema);
 
-if (process.argv.length === 4) {
-	const person = new Person({
-		name: process.argv[2],
-		number: process.argv[3],
-	});
+// if (process.argv.length === 4) {
+// 	const person = new Person({
+// 		name: process.argv[2],
+// 		number: process.argv[3],
+// 	});
 	
-	person.save().then(result => {
-		console.log(`added ${person.name} ${person.number} to phonebook`)
-		mongoose.connection.close();
-	})
-} else {
-	Person.find({}).then(persons => {
-		console.log("phonebook:")
-		persons.forEach(person => {
-			console.log(`${person.name} ${person.number}`)
-		})
-		mongoose.connection.close();
-	})
-}
+// 	person.save().then(result => {
+// 		console.log(`added ${person.name} ${person.number} to phonebook`)
+// 		mongoose.connection.close();
+// 	})
+// } else {
+// 	Person.find({}).then(persons => {
+// 		console.log("phonebook:")
+// 		persons.forEach(person => {
+// 			console.log(`${person.name} ${person.number}`)
+// 		})
+// 		mongoose.connection.close();
+// 	})
+// }
