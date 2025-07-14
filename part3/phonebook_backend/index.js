@@ -18,6 +18,8 @@ const errorHandler = (error, request, response, next) => {
 
 	if (error.name === 'CastError')
 		return response.status(400).send({ error: 'malformatted id' }).end();
+	else if (error.name === 'ValidationError') 
+		return response.status(400).json({ error: error.message })
 	next(error);
 }
 
@@ -72,27 +74,21 @@ app.get('/info', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
 	const name = request.body.name;
 	const number = request.body.number;
-	if (!name || !number || !parseInt(number))
-		response.status(400).json({"error": "name or number is invalid"}).end();
-	else  {
-		// console.log(`name: ${name}\nnumber: ${number}\nid: ${id}`);
-		const person = new Person({
-			name: name,
-			number: number,
-		});
-		person.save().then(savedPerson => {
-			response.json(savedPerson);
-		})
-		.catch(error => next(error));
-	}
+	// console.log(`name: ${name}\nnumber: ${number}\nid: ${id}`);
+	const person = new Person({
+		name: name,
+		number: number,
+	});
+	person.save().then(savedPerson => {
+		response.json(savedPerson);
+	})
+	.catch(error => next(error));
 });
 
 //PUT Update a contact infomation
 app.put('/api/persons/:id', (request, response, next) => {
 	const { number } = request.body;
 	const id = request.params.id;
-	if (!number || !parseInt(number))
-		return response.status(400).send({ error: 'Invalid number' }).end();
 	Person.findById(id).then(person => {
 		if (!person)
 			return response.status(404).end();
