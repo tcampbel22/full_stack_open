@@ -2,10 +2,8 @@
 	if (msg === null)
 		return
 	return (
-		<div className="msg-container">
-			<div className="error">
-				{msg}
-			</div>
+		<div className="error">
+			{msg}
 		</div>
 	)
 }

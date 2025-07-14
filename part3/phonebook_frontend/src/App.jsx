@@ -47,12 +47,12 @@ const App = () => {
 			setPersons(persons.concat(returnedPerson));
 			setNewName('')
 			setNewNumber('')
-			console.log("new name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
+			console.log("name: ", returnedPerson.name, "\nid: ", returnedPerson.id, "\nnumber: ", returnedPerson.number);
 			toggleAdded(`Added ${returnedPerson.name}`);
 		})
 		.catch(error => {
-			console.error(`Failed to create ${newName}`, error);
-			setErrorMessage(`Failed to create ${newName}`);
+			console.log(`Failed to create ${newName}`, error.response.data.error);
+			setErrorMessage(error.response.data.error);
 			setTimeout(() => {setErrorMessage(null)}, 2000);
 
 		});
@@ -77,7 +77,7 @@ const App = () => {
 				if (error.response.status === 404) {
 					setErrorMessage(`Cannot update ${person.name} as they have been deleted or do not exist`)
 				} else {
-					setErrorMessage(`Cannot update ${person.name}, please try again`)
+					setErrorMessage(error.response.data.error);
 				}
 				setTimeout(() => {setErrorMessage(null)}, 2000);
 			});
@@ -102,30 +102,29 @@ const App = () => {
 			})
 		.catch(error => {
 			console.error(`Failed to delete person ${id}`, error);
-			if (error.response.status === 404) {
+			if (error.response.status === 404)
 				setErrorMessage(`Cannot delete ${person.name} as they have been deleted aready or do not exist`)
-			} else {
-				setErrorMessage(`Cannot delete ${person.name}, please try again`)
-			}
+			else
+				setErrorMessage(error.response.data.error);
 			setTimeout(() => {setErrorMessage(null)}, 2000);
 		})
 	}
 
 	const handleNewNames = (event) => {
 		event.preventDefault();
-		console.log(event.target.value);
+		// console.log(event.target.value);
 		setNewName(event.target.value);
 	}
 
 	const handleNewNumbers = (event) => {
 		event.preventDefault();
-		console.log(event.target.value);
+		// console.log(event.target.value);
 		setNewNumber(event.target.value);
 	}
 
 	const handleFilter = (event) => {
 		event.preventDefault();
-		console.log(event.target.value);
+		// console.log(event.target.value);
 		setNewFilter(event.target.value);
 	}
 	return (
