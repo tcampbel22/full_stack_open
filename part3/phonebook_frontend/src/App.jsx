@@ -36,8 +36,11 @@ const App = () => {
 		if (!newNumber)
 			return alert("Please enter a number")
 		const person = persons.find(person => person.name === newName)
-		if (person)
+		if (person) {
+			setNewName('')
+			setNewNumber('')
 			return handleUpdateNumber(person);
+		}
 		
 		const nameObject = { 
 			name: newName,
