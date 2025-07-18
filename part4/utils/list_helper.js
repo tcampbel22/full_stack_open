@@ -48,7 +48,7 @@ const mostLikes = (blogs) => {
 		.thru(([author, likes]) => ({author, likes}))
 		.value()
 }
-// console.log(mostLikes(list))
+
 
   module.exports = {
 	dummy,
