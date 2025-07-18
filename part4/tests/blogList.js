@@ -12,7 +12,7 @@ const blogList = [
       title: 'Understanding the JavaScript Event Loop',
       author: 'Jake Archibald',
       url: 'https://jakearchibald.com/2014/event-loop/',
-      likes: 10,
+      likes: 100,
       __v: 0
     },
     {

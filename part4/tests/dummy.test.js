@@ -3,10 +3,9 @@ const assert = require('node:assert')
 const blogList = require('./blogList')
 const listHelper = require('../utils/list_helper')
 
-test('dummy returns one', () => {
-  const blogs = []
 
-  const result = listHelper.dummy(blogs)
+test('dummy returns one', () => {
+  const result = listHelper.dummy()
   assert.strictEqual(result, 1)
 })
 
@@ -29,21 +28,37 @@ describe('total likes', () => {
 
 	test('when list has 10 blogs, equals the likes of that', () => {
 		const result = listHelper.totalLikes(blogList)
-		assert.strictEqual(result, 150)
+		assert.strictEqual(result, 240)
 	  })
   })
 
   describe('favourite blog', () => {
 	const correctBlog = {
-		_id: '5a423dd71b54a676234d1801',
-		title: 'The Pragmatic Programmer: Your Journey to Mastery',
-		author: 'Andrew Hunt, David Thomas',
-		url: 'https://www.goodreads.com/book/show/4099.The_Pragmatic_Programmer',
-		likes: 30,
+		_id: '5a422bb71b54a676234d17f9',
+		title: 'Understanding the JavaScript Event Loop',
+		author: 'Jake Archibald',
+		url: 'https://jakearchibald.com/2014/event-loop/',
+		likes: 100,
 		__v: 0
 	  }
 	test('list of 10 blogs, returns the one with most likes', () => {
 	  const result = listHelper.favouriteBlog(blogList)
 	  assert.deepStrictEqual(result, correctBlog)
+	})
+  })
+
+  describe('most blogs', () => {
+	test('list of 10 blogs, returns the author with the most blogs', () => {
+		const correctResult = { author: 'Donald Knuth', blogs: 2 }
+		const result = listHelper.mostBlogs(blogList)
+	  assert.deepStrictEqual(result, correctResult)
+	})
+  })
+  
+  describe('most likes', () => {
+	test('list of 10 blogs, returns the author with the most total likes', () => {
+		const correctResult = { author: 'Jake Archibald', likes: 100 }
+		const result = listHelper.mostLikes(blogList)
+	  assert.deepStrictEqual(result, correctResult)
 	})
   })

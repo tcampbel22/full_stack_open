@@ -8,14 +8,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-	"lint": "eslint .",
-	"lint:fix": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "dev": "node --watch index.js",
     "test": "node --test"
   },
   "dependencies": {
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "lodash": "^4.17.21",
     "mongoose": "^8.16.2"
   },
   "devDependencies": {
