@@ -1,0 +1,28 @@
+{
+  "name": "blog_app",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "Tim Campbell",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "dev": "node --watch index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "lodash": "^4.17.21",
+    "mongoose": "^8.16.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@stylistic/eslint-plugin-js": "^4.4.1",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0"
+  }
+}
