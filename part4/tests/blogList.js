@@ -78,7 +78,7 @@ const blogList = [
       url: 'https://www.goodreads.com/book/show/4099.The_Pragmatic_Programmer',
       likes: 30,
       __v: 0
-    }
+    },
 ];
 
 module.exports = blogList

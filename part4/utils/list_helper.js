@@ -1,10 +1,6 @@
 // const list = require('../tests/blogList')
 const _ = require('lodash')
 
-const dummy = () => {
-	return 1
-  }
-
 const totalLikes = (blogs) => {
 	return blogs.reduce((acc, blog) => {
 		// console.log(acc + blog.likes)
@@ -49,9 +45,7 @@ const mostLikes = (blogs) => {
 		.value()
 }
 
-
   module.exports = {
-	dummy,
 	totalLikes,
 	favouriteBlog,
 	mostBlogs,
