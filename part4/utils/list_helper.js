@@ -1,5 +1,9 @@
 // const list = require('../tests/blogList')
 const _ = require('lodash')
+const supertest = require('supertest')
+const app = require('../app')
+
+const api = supertest(app)
 
 const totalLikes = (blogs) => {
 	return blogs.reduce((acc, blog) => {
@@ -45,7 +49,25 @@ const mostLikes = (blogs) => {
 		.value()
 }
 
+
+const fetchBlogById = async (id) => {
+	return await api
+		.get(`/api/blogs/${id}`)
+		.expect(200)
+		.expect('Content-Type', /application\/json/)
+}
+
+const fetchAllBlogs = async () => {
+	return await api
+		.get(`/api/blogs`)
+		.expect(200)
+		.expect('Content-Type', /application\/json/)
+}
+
+
   module.exports = {
+	fetchAllBlogs,
+	fetchBlogById,
 	totalLikes,
 	favouriteBlog,
 	mostBlogs,
