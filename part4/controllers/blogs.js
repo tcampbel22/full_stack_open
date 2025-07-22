@@ -1,49 +1,77 @@
 const Blog = require('../models/blog')
-const { info } = require('../utils/logger')
+const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 const blogsRouter = require('express').Router()
 
 
-blogsRouter.get('/blogs', async (request, response) => {
-  const blogs = await Blog.find({})
+const getTokenFrom = request => {  
+	const authorization = request.get('authorization')  
+	if (authorization && authorization.startsWith('Bearer '))  
+		return authorization.replace('Bearer ', '')    
+	return null
+}
+
+blogsRouter.get('/', async (request, response) => {
+  const blogs = await Blog.find({}).populate('user', { blogs: 0 })
 //   blogs.map(b => console.log(b))
   response.json(blogs)
 })
 
-blogsRouter.get('/blogs/:id', async (request, response) => {
+blogsRouter.get('/:id', async (request, response) => {
 	const blog = await Blog.findById(request.params.id)
-	if (!blog.id)
+	if (!blog)
 		return response.status(404).end()
 	response.json(blog)
 })
 
-blogsRouter.delete('/blogs/:id', async (request, response) => {
+blogsRouter.delete('/:id', async (request, response) => {
 	const blog = await Blog.findByIdAndDelete(request.params.id)
-	if (!blog.id)
+	if (!blog)
 		return response.status(404).end()
 	response.status(204).end()
 })
 
-blogsRouter.post('/blogs', async (request, response) => {
-  const blog = new Blog(request.body)
-  if (!blog.title || !blog.url)
-	return response.status(400).json({error: 'missing required params'}).end()
-  if (!blog.likes)
-	blog.likes = 0
-  
-  const savedBlog = await blog.save()
-  response.status(201).json(savedBlog)
+blogsRouter.post('/', async (request, response) => {
+	const body = request.body
+	let user;
+	if (process.env.NODE_ENV !== 'test') {
+		const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+		if (!decodedToken.id)
+			return response.status(401).json({ error: 'token invalid' }) 
+		user = await User.findById(decodedToken.id)
+	}
+	else
+		user = await User.findById(body.user)
+	if (!user)
+		return response.status(400).json({ error: 'userId missing or not valid'}).end()
+	const blog = new Blog({
+		title: body.title,
+		author: body.author,
+		url: body.url,
+		likes: body.likes,
+		user: user.id
+	})
+	const savedBlog = await blog.save()
+	user.blogs = user.blogs.concat(savedBlog._id)
+	await user.save()
+
+	response.status(201).json(savedBlog)
 })
 
-blogsRouter.put('/blogs/:id', async (request, response) => {
-	const { title, author, url, likes } = request.body
+blogsRouter.put('/:id', async (request, response) => {
+	const body = request.body
 	const id = request.params.id
-	if (!title || !url || !author)
+	const user = await User.findById(body.user)
+	if (!user)
+		return response.status(400).json({ error: 'userId missing or not valid'}).end()
+	if (!body.title || !body.url || !body.author)
 		return response.status(400).json({error: 'missing required params'}).end()
 	const payload = {
-		title,
-		author,
-		url,
-		likes: likes ?? 0
+		title: body.title,
+		author: body.author,
+		url: body.url,
+		likes: body.likes ?? 0,
+		user: user.id
 	}
 	const updatedBlog = await Blog.findByIdAndUpdate(
 		id, 
@@ -57,30 +85,8 @@ blogsRouter.put('/blogs/:id', async (request, response) => {
 	response.status(200).json(updatedBlog)
 })
 
-blogsRouter.put('/blogs/:id', async (request, response) => {
-	const { title, author, url, likes } = request.body
-	const id = request.params.id
-	if (!title || !url || !author)
-		return response.status(400).json({error: 'missing required params'}).end()
-	const payload = {
-		title,
-		author,
-		url,
-		likes: likes ?? 0
-	}
-	const updatedBlog = await Blog.findByIdAndUpdate(
-		id, 
-		payload, 
-		{ 
-		  new: true,
-		  runValidators: true,
-		})
-	if (!updatedBlog)
-		return response.status(404).end()
-	response.status(200).json(updatedBlog)
-})
 
-blogsRouter.patch('/blogs/:id', async (request, response) => {
+blogsRouter.patch('/:id', async (request, response) => {
 	const payload = request.body
 	const id = request.params.id
 	const updatedBlog = await Blog.findByIdAndUpdate(

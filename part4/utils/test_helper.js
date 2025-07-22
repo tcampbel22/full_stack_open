@@ -2,6 +2,9 @@
 const _ = require('lodash')
 const supertest = require('supertest')
 const app = require('../app')
+const User = require('../models/user')
+const Blog = require('../models/blog')
+const bcrypt = require('bcrypt')
 
 const api = supertest(app)
 
@@ -64,8 +67,54 @@ const fetchAllBlogs = async () => {
 		.expect('Content-Type', /application\/json/)
 }
 
+const fetchAllUsers = async () => {
+	const users = await User.find({})
+	return users.map(u => u.toJSON())
+}
+
+const getAllBlogs = async () => {
+	const blogs = await Blog.find({})
+	return blogs.map(b => b.toJSON())
+}
+
+const nonExistingId = async () => {
+	const blog = new Blog(
+		{ 
+			title: 'willremovethissoon',
+			author: 'fake',
+			url: 'fake',
+			likes: 0 
+		})
+	await blog.save()
+	await blog.deleteOne()
+  
+	return blog._id.toString()
+  }
+
+const fetchRootId = async () => {
+	const root = await User.findOne({ username: 'root' })
+	return root._id.toString()
+}
+
+	
+const seedUsers = async () => {
+	await User.deleteMany({})
+	const passwordHash = await bcrypt.hash('secret', 10)
+	const user = new User({ 
+		username: 'root',
+		name: 'bobbo',
+		passwordHash 
+	})
+	await user.save()
+}
+
 
   module.exports = {
+	getAllBlogs,
+	seedUsers,
+	fetchRootId,
+	nonExistingId,
+	fetchAllUsers,
 	fetchAllBlogs,
 	fetchBlogById,
 	totalLikes,

@@ -3,39 +3,41 @@ const { default: mongoose } = require('mongoose')
 const assert = require('node:assert')
 const blogList = require('./blogList')
 const Blog = require('../models/blog')
-const listHelper = require('../utils/list_helper')
+const helper = require('../utils/test_helper')
 const supertest = require('supertest')
 const app = require('../app')
 
 const api = supertest(app)
 
-describe('test based on populated db', async () => {
+describe.only('test based on populated db', async () => {
 
 	beforeEach(async () => {
 		await Blog.deleteMany({})
 		await Blog.insertMany(blogList)
+		await helper.seedUsers()
 	})
 	
-	describe('fetch entire blog list', async () => {
-		test('GET returns 200 if all blogs are returned as json', async () => {
-			const response = await listHelper.fetchAllBlogs()
-			assert.strictEqual(response.body.length, blogList.length)
-		})
+	test('GET returns 200 if all blogs are returned as json', async () => {
+		const response = await helper.fetchAllBlogs()
+		assert.strictEqual(response.body.length, blogList.length)
 	})
 
 	test('GET verifies identifier as id, should return 200', async () => {
-		const response = await listHelper.fetchAllBlogs()
+		const response = await helper.fetchAllBlogs()
 		response.body.forEach(b => {
 			assert.ok(b.id)
 		})
 	})
 
-	test('POST new blog is saved to db, should return 201', async () => {
+	test.only('POST new blog is saved to db, should return 201', async () => {
+		const user = await helper.fetchRootId()
+		const blogsAtStart = await helper.getAllBlogs()
 		const newBlog = {
 				title: 'New post',
 				author: 'Bob',
 				url: 'https://www.test.com',
 				likes: 30,
+				user: `${user}`
 		}
 		const savedBlog = await api
 				.post('/api/blogs')
@@ -43,18 +45,23 @@ describe('test based on populated db', async () => {
 				.expect(201)
 				.expect('Content-Type', /application\/json/)
 
+		const blogsAtEnd = await helper.getAllBlogs()
+		assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
 		newBlog.id = savedBlog.body.id
-		const response = await listHelper.fetchBlogById(savedBlog.body.id)
+		const response = await helper.fetchBlogById(savedBlog.body.id)
 		assert.deepStrictEqual(response.body, newBlog)
-		const allBlogs = await listHelper.fetchAllBlogs()
+		const allBlogs = await helper.fetchAllBlogs()
 		assert.strictEqual(allBlogs.body.length, blogList.length + 1)
 	})
 
 	test('POST new blog with like property empty, should return 201 and likes 0', async () => {
+		const user = await helper.fetchRootId()
+		const blogsAtStart = await helper.getAllBlogs()
 		const noLikes = {
 			title: 'New post',
 			author: 'Bob',
 			url: 'https://www.test.com',
+			user: `${user}`
 		}
 		const response = await api
 			.post('/api/blogs')
@@ -62,13 +69,17 @@ describe('test based on populated db', async () => {
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(response.body.likes, 0)
+		const blogsAtEnd = await helper.getAllBlogs()
+		assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
 	})
 
 	test('POST no title in request, should return 400', async () => {
+		const user = await helper.fetchRootId()
 		const noTitle = {
 			author: 'Bob',
 			url: 'https://www.test.com',
-			likes: 20
+			likes: 20,
+			user: `${user}`
 		}
 		await api
 			.post('/api/blogs')
@@ -79,10 +90,12 @@ describe('test based on populated db', async () => {
 	})
 
 	test('POST no url in request, should return 400', async () => {
+		const user = await helper.fetchRootId()
 		const noUrl = {
 			title: 'New post',
 			author: 'Bob',
-			likes: 20
+			likes: 20,
+			user: `${user}`
 		}
 		await api
 			.post('/api/blogs')
@@ -93,11 +106,13 @@ describe('test based on populated db', async () => {
 		})
 	
 	test('DELETE delete a blog by id, should return 204', async () => {
+		const user = await helper.fetchRootId()
 		const deleteMe = {
 			title: 'delete',
 			author: 'Bob',
 			url: 'https://www.test.com',
-			likes: 20
+			likes: 20,
+			user: `${user}`
 		}
 		
 		const toBeDeleted = await api
@@ -117,13 +132,15 @@ describe('test based on populated db', async () => {
 	})
 
 	test('PUT update entire blog, should return 200', async () => {
+		const user = await helper.fetchRootId()
 		const newBlog = {
 			title: 'new title',
 			author: 'new author',
 			url: 'https://www.new_url.com',
-			likes: 50
+			likes: 50,
+			user: `${user}`
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newBlog)
@@ -138,11 +155,13 @@ describe('test based on populated db', async () => {
 
 
 	test('PUT update title with bad id, should return 400', async () => {
+		const user = await helper.fetchRootId()
 		const newBlog = {
 			title: 'new title',
 			author: 'new author',
 			url: 'https://www.new_url.com',
-			likes: 50
+			likes: 50,
+			user: `${user}`
 		}
 		await api
 			.put(`/api/blogs/1234`)
@@ -154,14 +173,17 @@ describe('test based on populated db', async () => {
 	})
 
 	test('PUT update title with correct id format but doesn\'t exist, should return 404', async () => {
+		const user = await helper.fetchRootId()
 		const newBlog = {
 			title: 'new title',
 			author: 'new author',
 			url: 'https://www.new_url.com',
-			likes: 50
+			likes: 50,
+			user: `${user}`
 		}
+		const wrongId = await helper.nonExistingId()
 		await api
-			.put(`/api/blogs/5a423dd71b54a676234d1809`)
+			.put(`/api/blogs/${wrongId}`)
 			.send(newBlog)
 			.expect(404)
 		const response = await api.get('/api/blogs').expect(200)
@@ -170,18 +192,20 @@ describe('test based on populated db', async () => {
 	})
 
 	test('PUT update entire blog with missing author, should return 400', async () => {
+		const user = await helper.fetchRootId()
 		const badBlog = {
 			title: 'new title',
 			url: 'https://www.new_url.com',
-			likes: 50
+			likes: 50,
+			user: `${user}`
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(badBlog)
 			.expect(400)
 			.expect('Content-Type', /application\/json/)
-		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		assert.deepStrictEqual(previousState.body, postState.body)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -189,18 +213,20 @@ describe('test based on populated db', async () => {
 	})
 
 	test('PUT update entire blog with missing title, should return 400', async () => {
+		const user = await helper.fetchRootId()
 		const badBlog = {
 			author: 'new author',
 			url: 'https://www.new_url.com',
-			likes: 50
+			likes: 50,
+			user: `${user}`
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(badBlog)
 			.expect(400)
 			.expect('Content-Type', /application\/json/)
-		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		assert.deepStrictEqual(previousState.body, postState.body)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -208,18 +234,20 @@ describe('test based on populated db', async () => {
 	})
 
 	test('PUT update entire blog with missing likes, should return 200 and likes set to 0', async () => {
+		const user = await helper.fetchRootId()
 		const noLikes = {
 			title: "new title",
 			author: 'new author',
 			url: 'https://www.new_url.com',
+			user: `${user}`
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(noLikes)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
-		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		assert.notDeepEqual(previousState.body, postState.body)
 		assert.strictEqual(postState.body.likes, 0)
 		const response = await api.get('/api/blogs').expect(200)
@@ -231,7 +259,7 @@ describe('test based on populated db', async () => {
 		const newLikes = {
 			likes: 40
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newLikes)
@@ -247,7 +275,7 @@ describe('test based on populated db', async () => {
 		const newTitle = {
 			title: "new title"
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newTitle)
@@ -263,7 +291,7 @@ describe('test based on populated db', async () => {
 		const newAuthor = {
 			author: "bob"
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newAuthor)
@@ -279,7 +307,7 @@ describe('test based on populated db', async () => {
 		const newUrl = {
 			url: "www.new.com"
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newUrl)
@@ -321,7 +349,7 @@ describe('test based on populated db', async () => {
 		const random = {
 			random: "abcd"
 		}
-		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(random)
@@ -353,12 +381,12 @@ describe('Non database tests', async () => {
 	]
   
 	test('when list has only one blog, equals the likes of that', () => {
-	  const result = listHelper.totalLikes(listWithOneBlog)
+	  const result = helper.totalLikes(listWithOneBlog)
 	  assert.strictEqual(result, 5)
 	})
 
 	test('when list has 10 blogs, equals the likes of that', () => {
-		const result = listHelper.totalLikes(blogList)
+		const result = helper.totalLikes(blogList)
 		assert.strictEqual(result, 240)
 	  })
   })
@@ -373,7 +401,7 @@ describe('Non database tests', async () => {
 		__v: 0
 	  }
 	test('list of 10 blogs, returns the one with most likes', () => {
-	  const result = listHelper.favouriteBlog(blogList)
+	  const result = helper.favouriteBlog(blogList)
 	  assert.deepStrictEqual(result, correctBlog)
 	})
   })
@@ -381,7 +409,7 @@ describe('Non database tests', async () => {
   describe('most blogs', () => {
 	test('list of 10 blogs, returns the author with the most blogs', () => {
 		const correctResult = { author: 'Donald Knuth', blogs: 2 }
-		const result = listHelper.mostBlogs(blogList)
+		const result = helper.mostBlogs(blogList)
 	  assert.deepStrictEqual(result, correctResult)
 	})
   })
@@ -389,7 +417,7 @@ describe('Non database tests', async () => {
   describe('most likes', () => {
 	test('list of 10 blogs, returns the author with the most total likes', () => {
 		const correctResult = { author: 'Jake Archibald', likes: 100 }
-		const result = listHelper.mostLikes(blogList)
+		const result = helper.mostLikes(blogList)
 	  assert.deepStrictEqual(result, correctResult)
 	})
   })
