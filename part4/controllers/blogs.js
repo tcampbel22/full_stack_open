@@ -52,7 +52,7 @@ blogsRouter.put('/blogs/:id', async (request, response) => {
 		  new: true,
 		  validators: true,
 		})
-	if (!updatedBlog.id)
+	if (!updatedBlog)
 		return response.status(404).end()
 	response.status(200).json(updatedBlog)
 })
@@ -75,7 +75,7 @@ blogsRouter.put('/blogs/:id', async (request, response) => {
 		  new: true,
 		  runValidators: true,
 		})
-	if (!updatedBlog.id)
+	if (!updatedBlog)
 		return response.status(404).end()
 	response.status(200).json(updatedBlog)
 })

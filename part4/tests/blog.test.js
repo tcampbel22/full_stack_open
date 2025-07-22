@@ -17,20 +17,20 @@ describe('test based on populated db', async () => {
 	})
 	
 	describe('fetch entire blog list', async () => {
-		test('returns 200 if all blogs are returned as json', async () => {
+		test('GET returns 200 if all blogs are returned as json', async () => {
 			const response = await listHelper.fetchAllBlogs()
 			assert.strictEqual(response.body.length, blogList.length)
 		})
 	})
 
-	test('verfies identifier as id', async () => {
+	test('GET verifies identifier as id, should return 200', async () => {
 		const response = await listHelper.fetchAllBlogs()
 		response.body.forEach(b => {
 			assert.ok(b.id)
 		})
 	})
 
-	test('new blog is saved to db', async () => {
+	test('POST new blog is saved to db, should return 201', async () => {
 		const newBlog = {
 				title: 'New post',
 				author: 'Bob',
@@ -50,7 +50,7 @@ describe('test based on populated db', async () => {
 		assert.strictEqual(allBlogs.body.length, blogList.length + 1)
 	})
 
-	test('is the like property empty', async () => {
+	test('POST new blog with like property empty, should return 201 and likes 0', async () => {
 		const noLikes = {
 			title: 'New post',
 			author: 'Bob',
@@ -64,7 +64,7 @@ describe('test based on populated db', async () => {
 		assert.strictEqual(response.body.likes, 0)
 	})
 
-	test('no title in request', async () => {
+	test('POST no title in request, should return 400', async () => {
 		const noTitle = {
 			author: 'Bob',
 			url: 'https://www.test.com',
@@ -78,7 +78,7 @@ describe('test based on populated db', async () => {
 		assert.strictEqual(response.body.length, blogList.length)
 	})
 
-	test('no url in request', async () => {
+	test('POST no url in request, should return 400', async () => {
 		const noUrl = {
 			title: 'New post',
 			author: 'Bob',
@@ -92,7 +92,7 @@ describe('test based on populated db', async () => {
 			assert.strictEqual(response.body.length, blogList.length)
 		})
 	
-	test('delete a blog by id', async () => {
+	test('DELETE delete a blog by id, should return 204', async () => {
 		const deleteMe = {
 			title: 'delete',
 			author: 'Bob',
@@ -116,7 +116,7 @@ describe('test based on populated db', async () => {
 		assert.strictEqual(response.body.length, blogList.length)
 	})
 
-	test.only('update entire blog', async () => {
+	test('PUT update entire blog, should return 200', async () => {
 		const newBlog = {
 			title: 'new title',
 			author: 'new author',
@@ -129,21 +129,216 @@ describe('test based on populated db', async () => {
 			.send(newBlog)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
-		assert.strictEqual(previousState.id, updatedBlog.id)
-		assert.notDeepEqual(previousState, updatedBlog)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.notDeepEqual(previousState.body, updatedBlog.body)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+
+	test('PUT update title with bad id, should return 400', async () => {
+		const newBlog = {
+			title: 'new title',
+			author: 'new author',
+			url: 'https://www.new_url.com',
+			likes: 50
+		}
+		await api
+			.put(`/api/blogs/1234`)
+			.send(newBlog)
+			.expect(400)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PUT update title with correct id format but doesn\'t exist, should return 404', async () => {
+		const newBlog = {
+			title: 'new title',
+			author: 'new author',
+			url: 'https://www.new_url.com',
+			likes: 50
+		}
+		await api
+			.put(`/api/blogs/5a423dd71b54a676234d1809`)
+			.send(newBlog)
+			.expect(404)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PUT update entire blog with missing author, should return 400', async () => {
+		const badBlog = {
+			title: 'new title',
+			url: 'https://www.new_url.com',
+			likes: 50
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		await api
+			.put(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(badBlog)
+			.expect(400)
+			.expect('Content-Type', /application\/json/)
+		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		assert.deepStrictEqual(previousState.body, postState.body)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PUT update entire blog with missing title, should return 400', async () => {
+		const badBlog = {
+			author: 'new author',
+			url: 'https://www.new_url.com',
+			likes: 50
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		await api
+			.put(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(badBlog)
+			.expect(400)
+			.expect('Content-Type', /application\/json/)
+		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		assert.deepStrictEqual(previousState.body, postState.body)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PUT update entire blog with missing likes, should return 200 and likes set to 0', async () => {
+		const noLikes = {
+			title: "new title",
+			author: 'new author',
+			url: 'https://www.new_url.com',
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		await api
+			.put(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(noLikes)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		const postState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		assert.notDeepEqual(previousState.body, postState.body)
+		assert.strictEqual(postState.body.likes, 0)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
 	
 	})
 	
+	test('PATCH update blog likes, should return 200', async () => {
+		const newLikes = {
+			likes: 40
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const updatedBlog = await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(newLikes)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.notDeepEqual(previousState.body.likes, updatedBlog.body.likes)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	})
+
+	test('PATCH update blog title, should return 200', async () => {
+		const newTitle = {
+			title: "new title"
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const updatedBlog = await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(newTitle)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.notDeepEqual(previousState.body.title, updatedBlog.body.title)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	})
 	
+	test('PATCH update blog author, should return 200', async () => {
+		const newAuthor = {
+			author: "bob"
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const updatedBlog = await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(newAuthor)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.notDeepEqual(previousState.body.author, updatedBlog.body.author)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	})
+
+	test('PATCH update blog url with patch, should return 200', async () => {
+		const newUrl = {
+			url: "www.new.com"
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const updatedBlog = await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(newUrl)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.notDeepEqual(previousState.body.url, updatedBlog.body.url)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	})
+
+	test('PATCH update title with bad id, should return 400', async () => {
+		const badBlog = {
+			title: 'new title'
+		}
+		await api
+			.patch(`/api/blogs/1234`)
+			.send(badBlog)
+			.expect(400)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PATCH update title with correct id format but doesn\'t exist, should return 404', async () => {
+		const badBlog = {
+			title: 'new title'
+		}
+		await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1809`)
+			.send(badBlog)
+			.expect(404)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	
+	})
+
+	test('PATCH update a property that doesn\'t exist, should ignore it', async () => {
+		const random = {
+			random: "abcd"
+		}
+		const previousState = await listHelper.fetchBlogById('5a423dd71b54a676234d1801')
+		const updatedBlog = await api
+			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
+			.send(random)
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
+		assert.deepStrictEqual(previousState.body, updatedBlog.body)
+		const response = await api.get('/api/blogs').expect(200)
+		assert.strictEqual(response.body.length, blogList.length)
+	})
 	after(async () => {
 		await mongoose.connection.close()
 	})
 
 })
 
-describe('Non database test', async () => {
+describe('Non database tests', async () => {
 
 	describe('total likes', () => {
 		const listWithOneBlog = [
