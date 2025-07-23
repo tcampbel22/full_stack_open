@@ -1,15 +1,6 @@
 const Blog = require('../models/blog')
-const User = require('../models/user')
-const jwt = require('jsonwebtoken')
 const blogsRouter = require('express').Router()
-
-
-const getTokenFrom = request => {  
-	const authorization = request.get('authorization')  
-	if (authorization && authorization.startsWith('Bearer '))  
-		return authorization.replace('Bearer ', '')    
-	return null
-}
+const middleware = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user', { blogs: 0 })
@@ -24,26 +15,19 @@ blogsRouter.get('/:id', async (request, response) => {
 	response.json(blog)
 })
 
-blogsRouter.delete('/:id', async (request, response) => {
-	const blog = await Blog.findByIdAndDelete(request.params.id)
+blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
+	const blog = await Blog.findById(request.params.id)
 	if (!blog)
-		return response.status(404).end()
+		return response.status(400).json({ error: "blogId is missing or invalid" }).end()
+	if (request.user.id !== blog.user.toString())
+		return response.status(401).json({ error: 'user authentication error' })
+	await Blog.findByIdAndDelete(request.params.id)
 	response.status(204).end()
 })
 
-blogsRouter.post('/', async (request, response) => {
+blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
 	const body = request.body
-	let user;
-	if (process.env.NODE_ENV !== 'test') {
-		const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
-		if (!decodedToken.id)
-			return response.status(401).json({ error: 'token invalid' }) 
-		user = await User.findById(decodedToken.id)
-	}
-	else
-		user = await User.findById(body.user)
-	if (!user)
-		return response.status(400).json({ error: 'userId missing or not valid'}).end()
+	const user = request.user
 	const blog = new Blog({
 		title: body.title,
 		author: body.author,
@@ -58,12 +42,13 @@ blogsRouter.post('/', async (request, response) => {
 	response.status(201).json(savedBlog)
 })
 
-blogsRouter.put('/:id', async (request, response) => {
+blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
 	const body = request.body
-	const id = request.params.id
-	const user = await User.findById(body.user)
-	if (!user)
-		return response.status(400).json({ error: 'userId missing or not valid'}).end()
+	const blog = await Blog.findById(request.params.id)
+	if (!blog)
+		return response.status(404).json({ error: "blog cannot be found" }).end()
+	if (request.user.id !== blog.user.toString())
+		return response.status(401).json({ error: 'user authentication error' })
 	if (!body.title || !body.url || !body.author)
 		return response.status(400).json({error: 'missing required params'}).end()
 	const payload = {
@@ -71,33 +56,29 @@ blogsRouter.put('/:id', async (request, response) => {
 		author: body.author,
 		url: body.url,
 		likes: body.likes ?? 0,
-		user: user.id
+		user: request.user.id
 	}
 	const updatedBlog = await Blog.findByIdAndUpdate(
-		id, 
+		request.params.id, 
 		payload, 
-		{ 
-		  new: true,
-		  validators: true,
-		})
-	if (!updatedBlog)
-		return response.status(404).end()
+		{ new: true }
+	)
 	response.status(200).json(updatedBlog)
 })
 
 
-blogsRouter.patch('/:id', async (request, response) => {
+blogsRouter.patch('/:id', middleware.userExtractor, async (request, response) => {
 	const payload = request.body
-	const id = request.params.id
+	const blog = await Blog.findById(request.params.id)
+	if (!blog)
+		return response.status(404).json({ error: "blog cannot be found" }).end()
+	if (request.user.id !== blog.user.toString())
+		return response.status(401).json({ error: 'user authentication error' })
 	const updatedBlog = await Blog.findByIdAndUpdate(
-		id, 
+		request.params.id, 
 		payload, 
-		{ 
-		  new: true,
-		  runValidators: true,
-		})
-	if (!updatedBlog)
-		return response.status(404).end()
+		{ new: true }
+	)
 	response.status(200).json(updatedBlog)
 })
 

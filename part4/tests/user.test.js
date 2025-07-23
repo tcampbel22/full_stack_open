@@ -98,6 +98,7 @@ describe('user tests based on populated db', async () => {
 
     	assert(result.body.error.includes('password must be minimum 3 characters')) 
 	})
+	
 	after(async () => {
 		await mongoose.connection.close()
 	})

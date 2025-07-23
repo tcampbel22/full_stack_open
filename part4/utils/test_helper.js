@@ -5,6 +5,7 @@ const app = require('../app')
 const User = require('../models/user')
 const Blog = require('../models/blog')
 const bcrypt = require('bcrypt')
+const blogList = require('../tests/blogList')
 
 const api = supertest(app)
 
@@ -96,6 +97,13 @@ const fetchRootId = async () => {
 	return root._id.toString()
 }
 
+const loginUser = async (user) => {
+	const result = await api
+		.post('/api/login')
+		.send(user)
+		.expect(200)
+	return result.body.token
+}
 	
 const seedUsers = async () => {
 	await User.deleteMany({})
@@ -106,10 +114,29 @@ const seedUsers = async () => {
 		passwordHash 
 	})
 	await user.save()
+	const token = await loginUser({
+		username: user.username, 
+		password: 'secret'
+	})
+	// console.log("User list seeded")
+	return token
 }
 
+const seedBlogList = async () => {
+	const userId = await fetchRootId()  
+	await Blog.deleteMany({})
+	const seededBlogList = blogList.map(blog => ({
+			...blog,
+			user: userId
+	}))
+	
+	await Blog.insertMany(seededBlogList)
+	// console.log("Blog list seeded")
+}
 
   module.exports = {
+	seedBlogList,
+	loginUser,
 	getAllBlogs,
 	seedUsers,
 	fetchRootId,

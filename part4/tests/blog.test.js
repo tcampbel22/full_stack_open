@@ -8,13 +8,12 @@ const supertest = require('supertest')
 const app = require('../app')
 
 const api = supertest(app)
-
+let TOKEN
 describe.only('test based on populated db', async () => {
 
 	beforeEach(async () => {
-		await Blog.deleteMany({})
-		await Blog.insertMany(blogList)
-		await helper.seedUsers()
+		TOKEN = await helper.seedUsers()
+		await helper.seedBlogList()
 	})
 	
 	test('GET returns 200 if all blogs are returned as json', async () => {
@@ -29,7 +28,52 @@ describe.only('test based on populated db', async () => {
 		})
 	})
 
-	test.only('POST new blog is saved to db, should return 201', async () => {
+	test('POST attempts to create a blog with no JWT token, should return 401', async () => {
+		const user = await helper.fetchRootId()
+		const blogsAtStart = await helper.getAllBlogs()
+		const newBlog = {
+				title: 'New post',
+				author: 'Bob',
+				url: 'https://www.test.com',
+				likes: 30,
+				user: `${user}`
+		}
+		const result = await api
+			.post('/api/blogs')
+			.send(newBlog)
+			.set('Authorization', `Bearer fake token`)
+			.expect(401)
+			.expect('Content-Type', /application\/json/)
+
+		const blogsAtEnd = await helper.getAllBlogs()
+		assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+		assert(result.body.error.includes('token invalid'))
+	})
+	
+	test('POST attempts to create a blog with an expired JWT token, should return 401', async () => {
+		const EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpZCI6IjY4N2Y4OWY5ZjRjMjc2YzIzMmNmOWQyYyIsImlhdCI6MTc1MzI2ODAzNSwiZXhwIjoxNzUzMjcxNjM1fQ.0D4Y6PMh52MHFHyJI9Oqr0DdLio8ueKkRdLpG3syqzY'
+		const user = await helper.fetchRootId()
+		const blogsAtStart = await helper.getAllBlogs()
+		const newBlog = {
+			title: 'New post',
+			author: 'Bob',
+			url: 'https://www.test.com',
+			likes: 30,
+			user: `${user}`
+		}
+		const result = await api
+			.post('/api/blogs')
+			.send(newBlog)
+			.set('Authorization', `Bearer ${EXPIRED_TOKEN}`)
+			.expect(401)
+			.expect('Content-Type', /application\/json/)
+		const blogsAtEnd = await helper.getAllBlogs()
+		assert.strictEqual(blogsAtEnd.length, blogsAtStart.length)
+		assert(result.body.error.includes('token expired'))
+	})
+
+
+	test('POST new blog is saved to db, should return 201', async () => {
 		const user = await helper.fetchRootId()
 		const blogsAtStart = await helper.getAllBlogs()
 		const newBlog = {
@@ -42,6 +86,7 @@ describe.only('test based on populated db', async () => {
 		const savedBlog = await api
 				.post('/api/blogs')
 				.send(newBlog)
+				.set('Authorization', `Bearer ${TOKEN}`)
 				.expect(201)
 				.expect('Content-Type', /application\/json/)
 
@@ -50,8 +95,6 @@ describe.only('test based on populated db', async () => {
 		newBlog.id = savedBlog.body.id
 		const response = await helper.fetchBlogById(savedBlog.body.id)
 		assert.deepStrictEqual(response.body, newBlog)
-		const allBlogs = await helper.fetchAllBlogs()
-		assert.strictEqual(allBlogs.body.length, blogList.length + 1)
 	})
 
 	test('POST new blog with like property empty, should return 201 and likes 0', async () => {
@@ -66,6 +109,7 @@ describe.only('test based on populated db', async () => {
 		const response = await api
 			.post('/api/blogs')
 			.send(noLikes)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(response.body.likes, 0)
@@ -84,6 +128,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.post('/api/blogs')
 			.send(noTitle)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -100,6 +145,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.post('/api/blogs')
 			.send(noUrl)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 			const response = await api.get('/api/blogs')
 			assert.strictEqual(response.body.length, blogList.length)
@@ -118,6 +164,7 @@ describe.only('test based on populated db', async () => {
 		const toBeDeleted = await api
 			.post('/api/blogs')
 			.send(deleteMe)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
 		
@@ -125,6 +172,7 @@ describe.only('test based on populated db', async () => {
 		assert.strictEqual(response.body.length, blogList.length + 1)
 		await api
 			.delete(`/api/blogs/${toBeDeleted.body.id}`)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(204)
 		
 		response = await api.get('/api/blogs').expect(200)
@@ -132,18 +180,17 @@ describe.only('test based on populated db', async () => {
 	})
 
 	test('PUT update entire blog, should return 200', async () => {
-		const user = await helper.fetchRootId()
 		const newBlog = {
 			title: 'new title',
 			author: 'new author',
 			url: 'https://www.new_url.com',
-			likes: 50,
-			user: `${user}`
+			likes: 50
 		}
 		const previousState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
 		const updatedBlog = await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
@@ -166,6 +213,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.put(`/api/blogs/1234`)
 			.send(newBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -185,6 +233,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.put(`/api/blogs/${wrongId}`)
 			.send(newBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(404)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -203,6 +252,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(badBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 			.expect('Content-Type', /application\/json/)
 		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
@@ -224,6 +274,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(badBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 			.expect('Content-Type', /application\/json/)
 		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
@@ -245,6 +296,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.put(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(noLikes)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		const postState = await helper.fetchBlogById('5a423dd71b54a676234d1801')
@@ -263,6 +315,7 @@ describe.only('test based on populated db', async () => {
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newLikes)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
@@ -279,6 +332,7 @@ describe.only('test based on populated db', async () => {
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newTitle)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
@@ -295,6 +349,7 @@ describe.only('test based on populated db', async () => {
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newAuthor)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
@@ -311,6 +366,7 @@ describe.only('test based on populated db', async () => {
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(newUrl)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
@@ -326,6 +382,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.patch(`/api/blogs/1234`)
 			.send(badBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(400)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -339,6 +396,7 @@ describe.only('test based on populated db', async () => {
 		await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1809`)
 			.send(badBlog)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(404)
 		const response = await api.get('/api/blogs').expect(200)
 		assert.strictEqual(response.body.length, blogList.length)
@@ -353,6 +411,7 @@ describe.only('test based on populated db', async () => {
 		const updatedBlog = await api
 			.patch(`/api/blogs/5a423dd71b54a676234d1801`)
 			.send(random)
+			.set('Authorization', `Bearer ${TOKEN}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 		assert.strictEqual(previousState.body.id, updatedBlog.body.id)
